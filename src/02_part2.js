@@ -1,10 +1,21 @@
-'use strict';
+"use strict";
 
 // _.includes는 배열이 주어진 값을 포함하는지 확인합니다.
 // 일치 여부의 판단은 엄격한 동치 연산(strict equality, ===)을 사용해야 합니다.
 // 입력으로 전달되는 배열의 요소는 모두 primitive value라고 가정합니다.
 _.includes = function (arr, target) {
   // TODO: 여기에 코드를 작성합니다.
+  let count = 0;
+  _.each(arr, function (v) {
+    if (v === target) {
+      count = 1;
+    }
+  });
+
+  if (count === 1) {
+    return true;
+  }
+  return false;
 };
 
 // _.every는 배열의 모든 요소가 test 함수(iteratee)를 통과하면 true를, 그렇지 않은 경우 false를 리턴합니다.
@@ -14,6 +25,20 @@ _.includes = function (arr, target) {
 // 빈 배열을 입력받은 경우, true를 리턴해야 합니다. (공허하게 참, vacantly true)
 _.every = function (arr, iteratee) {
   // TODO: 여기에 코드를 작성합니다.
+  if (arr.length === 0) {
+    return true;
+  }
+
+  let result = true;
+
+  _.each(arr, function (value) {
+    if (iteratee === undefined && value === false) {
+      result = false;
+    } else if (iteratee !== undefined && !iteratee(value)) {
+      result = false;
+    }
+  });
+  return result;
 };
 
 // _.some은 배열의 요소 중 하나라도 test 함수(iteratee)를 통과하면 true를, 그렇지 않은 경우 false를 리턴합니다.
@@ -21,6 +46,17 @@ _.every = function (arr, iteratee) {
 // 그 외 조건은 앞서 _.every와 동일합니다.
 _.some = function (arr, iteratee) {
   // TODO: 여기에 코드를 작성합니다.
+  let isTruthy = false;
+  if (iteratee === undefined) {
+    for (const i in arr) {
+      arr[i] && (isTruthy = true);
+    }
+  } else {
+    for (const i in arr) {
+      iteratee(arr[i], i, arr) && (isTruthy = true);
+    }
+  }
+  return isTruthy;
 };
 
 // _.extend는 여러 개의 객체를 입력받아, 순서대로 객체를 결합합니다.
@@ -46,13 +82,29 @@ _.some = function (arr, iteratee) {
 // spread syntax 또는 arguments 객체를 사용해야 합니다.
 // 함수의 시그니쳐(함수의 입력과 출력, 함수의 모양)를 적절하게 변형하시기 바랍니다.
 // _.each를 사용해서 구현합니다.
-_.extend = function () {
+_.extend = function (result, ...arr) {
   // TODO: 여기에 코드를 작성합니다.
+  _.each(arr, function (key) {
+    Object.assign(result, key); // target으로 obj의 key들이 복사되어 쌓인다
+  });
+  return result;
 };
 
 // _.defaults는 _.extend와 비슷하게 동작하지만, 이미 존재하는 속성(key)을 덮어쓰지 않습니다.
-_.defaults = function () {
+_.defaults = function (...args) {
   // TODO: 여기에 코드를 작성합니다.
+  let obj = args[0];
+  _.each(args, function (el, i) {
+    // if (i === 0) {
+    //   return; // 첫번째는 무시해야되니깐 each 안에 익명함수를 종료
+    // }
+    for (let prop in el) {
+      if (obj[prop] === undefined) {
+        obj[prop] = el[prop];
+      }
+    }
+  });
+  return obj;
 };
 
 // _.zip은 여러 개의 배열을 입력받아, 같은 index의 요소들을 묶어 배열로 만듭니다.
@@ -68,8 +120,21 @@ _.defaults = function () {
 //  const arr2 = [1,2];
 //  const result = _.zip(arr1, arr2)
 //  console.log(result); // --> [['a',1], ['b',2], ['c', undefined]]
-_.zip = function () {
+_.zip = function (...args) {
   // TODO: 여기에 코드를 작성합니다.
+  let result = [];
+  let logStr = 0;
+
+  for (let result of arguments) {
+    if (result.length > logStr) {
+      logStr = result.length;
+    }
+  }
+  for (let i = 0; i < logStr; i++) {
+    let arr = _.pluck(arguments, i);
+    result.push(arr);
+  }
+  return result;
 };
 
 // _.zipStrict은 _.zip과 비슷하게 동작하지만,
@@ -77,6 +142,19 @@ _.zip = function () {
 // 그 외 조건은 앞서 _.zip과 동일합니다.
 _.zipStrict = function () {
   // TODO: 여기에 코드를 작성합니다.
+  let result = [];
+  let shorArr = arguments[0].length;
+
+  for (let arr of arguments) {
+    if (arr.length < shorArr) {
+      shorArr = arr.length;
+    }
+  }
+  for (let i = 0; i < shorArr; i++) {
+    let arr = _.pluck(arguments, i);
+    result.push(arr);
+  }
+  return result;
 };
 
 // _.intersection은 여러 개의 배열을 입력받아, 교집합 배열을 리턴합니다.
@@ -89,8 +167,17 @@ _.zipStrict = function () {
 //  const result = _.intersection(set1, set2);
 //  console.log(result) // --> ['e', 'c']
 //                      // 첫 번째 배열에 'e'가 먼저 등장
-_.intersection = function () {
+_.intersection = function (...arr) {
   // TODO: 여기에 코드를 작성합니다.
+  return _.reduce(arr, function (acc, ele) {
+    let result = [];
+    _.each(acc, function (valu) {
+      if (_.includes(ele, valu)) {
+        result.push(valu);
+      }
+    });
+    return result;
+  });
 };
 
 // _.difference는 여러 개의 배열을 입력받아, 차집합 배열을 리턴합니다.
@@ -102,8 +189,22 @@ _.intersection = function () {
 //  const set2 = ['b', 'c', 'd'];
 //  const result = _.difference(set1, set2);
 //  console.log(result) // --> ['a']
-_.difference = function () {
+_.difference = function (...arr) {
   // TODO: 여기에 코드를 작성합니다.
+  let result = [];
+
+  for (let i = 0; i < arr[0].length; i++) {
+    let count = 0;
+    _.each(arr, function (value) {
+      if (_.indexOf(value, arr[0][i]) === -1) {
+        count += 1;
+        if (count === arr.length - 1) {
+          result.push(arr[0][i]);
+        }
+      }
+    });
+  }
+  return result;
 };
 
 // _.sortBy는 배열의 각 요소에 함수 transform을 적용하여 얻은 결과를 기준으로 정렬합니다.
@@ -145,7 +246,32 @@ _.difference = function () {
 // 이번 스프린트는 정렬 자체를 다루지 않으니 스프린트 이후에 스스로 학습하시기 바랍니다.
 //  학습 우선순위: bubble sort, insertion sort, quick sort, merge sort, radix sort
 _.sortBy = function (arr, transform, order) {
-  // TODO: 여기에 코드를 작성합니다.
+  if (transform === undefined) {
+    transform = _.identity;
+  }
+  if (order === 1 || order === undefined) {
+    arr.sort(function (a, b) {
+      if (transform(a) > transform(b)) {
+        return 1;
+      }
+      if (transform(a) < transform(b)) {
+        return -1;
+      }
+      return 0;
+    });
+  } else {
+    arr.sort(function (a, b) {
+      // 내림차순
+      if (transform(a) > transform(b)) {
+        return -1;
+      }
+      if (transform(a) < transform(b)) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+  return [...arr];
 };
 
 // _.shuffle은 배열 요소의 순서가 랜덤하게 변경된 새로운 배열을 리턴합니다.
